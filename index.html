@@ -54,7 +54,7 @@ footer{text-align:center;color:#587284;font-size:11px;padding:18px}
 <button data-q="1250'in yüzde 18'i kaç">Yüzde</button><button data-q="2500 TL'ye yüzde 15 indirim">İndirim</button><button data-q="1200 TL KDV hariç yüzde 20 KDV ekle">KDV ekle</button>
 <button data-q="3600 TL'yi 4 kişiye böl">Bölüş</button><button data-q="750'nin yüzde 8'i kaç">Oran</button><button data-q="karekök 144">Bilimsel</button>
 </div>
-<div style="display:flex;gap:8px;margin-top:12px;align-items:center"><button class="action" id="calculate">Hesapla</button><button class="action" id="clearCalc">Temizle</button></div>
+<div style="display:flex;gap:8px;margin-top:12px;align-items:center"><button class="action" id="calcMic">🎙 Konuşarak hesapla</button><button class="action" id="calculate">Hesapla</button><button class="action" id="clearCalc">Temizle</button></div>
 <div style="margin-top:14px;background:#06111b;border:1px solid #23465a;border-radius:14px;padding:14px">
 <div class="eyebrow">SONUÇ</div><div class="result" id="answer" style="font-size:30px;margin:5px 0">—</div><div id="calcDetail" style="color:var(--muted);font-size:13px">Hesaplamaya hazır.</div>
 </div>
@@ -130,9 +130,10 @@ $('clearCalc').onclick=()=>{$('expression').value='';$('answer').textContent='�
 document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{$('expression').value=b.dataset.q;calc()});
 $('calc').onclick=()=>$('expression').focus();
 $('notes').onclick=()=>{let n=prompt('Eymen notuna ne yazsın?');if(n){localStorage.setItem('eymen_note',n);$('heard').textContent='Kaydedilen not: '+n;speak('Notunu bu cihazda kaydettim')}};
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
-if(SR){rec=new SR();rec.lang='tr-TR';rec.interimResults=false;rec.maxAlternatives=1;rec.onstart=()=>{$('mic').classList.add('listening');$('state').textContent='Dinliyorum…'};rec.onend=()=>{$('mic').classList.remove('listening')};rec.onerror=e=>{$('state').textContent='Ses tanıma hatası: '+e.error};rec.onresult=e=>{let q=e.results[0][0].transcript.toLocaleLowerCase('tr-TR');$('heard').textContent='“'+q+'”';command(q)}}else{$('mic').disabled=true;$('state').textContent='Bu tarayıcı ses tanımayı desteklemiyor. Android Chrome ile deneyin.'}
-$('mic').onclick=()=>{if(rec){try{rec.start()}catch(e){}}};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;let listeningForCalc=false;
+if(SR){rec=new SR();rec.lang='tr-TR';rec.interimResults=false;rec.maxAlternatives=1;rec.onstart=()=>{if(listeningForCalc){$('calcMic').textContent='🔴 Dinliyorum…';$('calcDetail').textContent='İşlemini söyle, seni dinliyorum.'}else{$('mic').classList.add('listening');$('state').textContent='Dinliyorum…'}};rec.onend=()=>{$('mic').classList.remove('listening');$('calcMic').textContent='🎙 Konuşarak hesapla';listeningForCalc=false};rec.onerror=e=>{$('state').textContent='Ses tanıma hatası: '+e.error;$('calcDetail').textContent='Ses tanıma hatası: '+e.error};rec.onresult=e=>{let q=e.results[0][0].transcript.toLocaleLowerCase('tr-TR');if(listeningForCalc){$('expression').value=q;$('calcDetail').textContent='Duyduğum: “'+q+'”';calc()}else{$('heard').textContent='“'+q+'”';command(q)}}}else{$('mic').disabled=true;$('calcMic').disabled=true;$('state').textContent='Bu tarayıcı ses tanımayı desteklemiyor. Android Chrome ile deneyin.';$('calcDetail').textContent='Bu tarayıcı ses tanımayı desteklemiyor. Android Chrome ile deneyin.'}
+$('mic').onclick=()=>{if(rec){listeningForCalc=false;try{rec.start()}catch(e){}}};
+$('calcMic').onclick=()=>{if(rec){listeningForCalc=true;try{rec.start()}catch(e){$('calcDetail').textContent='Mikrofon zaten açık. Biraz bekleyip tekrar dene.'}}};
 function command(q){
 if(q.includes('saat kaç')){speak('Saat '+new Date().toLocaleTimeString('tr-TR'));return}
 if(q.includes('kronometre')){$('stopwatch').click();return}
