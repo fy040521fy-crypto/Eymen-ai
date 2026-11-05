@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111c">
+<meta name="description" content="Eymen - kişisel sesli asistan">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Eymen AI</title>
+<style>
+:root{--bg:#050b13;--panel:#0c1a28;--line:#18384b;--cyan:#55dfff;--gold:#f4b85b;--muted:#91a9b9}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0%,#123149 0,#07111c 42%,#03070c 100%);color:#eaf7ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+main{max-width:560px;margin:auto;padding:18px 16px 30px}
+header{display:flex;justify-content:space-between;align-items:center;margin:8px 0 18px}
+.brand{letter-spacing:.22em;color:var(--cyan);font-size:13px;font-weight:800}.status{font-size:11px;color:#8de4b3;border:1px solid #245d4a;border-radius:30px;padding:6px 10px}
+.clock{text-align:center;padding:12px 0 18px}.time{font-size:clamp(42px,13vw,68px);font-weight:300;letter-spacing:.04em;font-variant-numeric:tabular-nums}.date{color:var(--muted);font-size:13px}
+.panel{background:linear-gradient(145deg,rgba(15,36,52,.96),rgba(7,18,29,.96));border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0;box-shadow:0 12px 35px #0006}
+.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:800}
+h1{font-size:24px;margin:5px 0 3px}p{color:var(--muted);margin:4px 0 12px;font-size:13px}
+.micwrap{display:flex;justify-content:center;padding:14px 0 10px}
+.mic{width:94px;height:94px;border-radius:50%;border:1px solid #4ebbdc;background:radial-gradient(circle at 35% 25%,#1d536c,#092033 70%);color:var(--cyan);font-size:34px;box-shadow:0 0 0 8px #55dfff0d,0 0 35px #21bce955;cursor:pointer}
+.mic.listening{background:radial-gradient(circle,#8b3b30,#35131b);color:#fff;border-color:#ff8a72;box-shadow:0 0 0 8px #ff715522,0 0 35px #ff715577}
+#state{text-align:center;color:var(--cyan);font-size:13px;min-height:22px}
+#heard{background:#06111b;border:1px solid #17364a;border-radius:12px;padding:12px;min-height:48px;color:#dff7ff;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tile{background:#091725;border:1px solid #17364a;border-radius:14px;padding:13px;color:#eaf7ff;text-align:left;min-height:72px;cursor:pointer}
+.tile b{display:block;color:var(--cyan);font-size:14px}.tile small{color:var(--muted)}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tools button,.action{background:#10283a;color:#dff7ff;border:1px solid #1e5068;border-radius:11px;padding:12px 8px;font-weight:650}
+.result{font-size:24px;color:var(--gold);font-variant-numeric:tabular-nums}
+input{width:100%;background:#06111b;color:white;border:1px solid #23465a;border-radius:10px;padding:12px;font-size:16px}
+footer{text-align:center;color:#587284;font-size:11px;padding:18px}
+</style>
+</head>
+<body><main>
+<header><div class="brand">E.Y.M.E.N. <span style="color:#eaf7ff">/ PERSONAL AI</span></div><div class="status">● HAZIR</div></header>
+<section class="clock"><div class="time" id="clock">00:00:00</div><div class="date" id="date"></div></section>
+<section class="panel">
+<div class="eyebrow">VOICE COMMAND INTERFACE</div><h1>Merhaba, ben Eymen.</h1><p>Mikrofona dokun ve Türkçe komutunu söyle.</p>
+<div class="micwrap"><button class="mic" id="mic" aria-label="Dinlemeyi başlat">🎙</button></div>
+<div id="state">Komutunu bekliyorum.</div><div id="heard">Örnek: “10 dakika sayaç başlat”</div>
+</section>
+<section class="panel"><div class="eyebrow">HIZLI ARAÇLAR</div><h1>Kontrol merkezi</h1><div class="grid">
+<button class="tile" id="stopwatch"><b>⏱ Kronometre</b><small id="sw">Başlatmak için dokun</small></button>
+<button class="tile" id="timer"><b>◷ 1 dakika sayaç</b><small>Hızlı geri sayım</small></button>
+<button class="tile" id="calc"><b>＋ Hesap makinesi</b><small>İşlem hesapla</small></button>
+<button class="tile" id="notes"><b>▤ Hızlı not</b><small>Notunu kaydet</small></button>
+</div></section>
+<section class="panel"><div class="eyebrow">HESAP MAKİNESİ</div><h1>Akıllı hesap</h1><input id="expression" inputmode="decimal" placeholder="Örn. 1250 * 0.18"><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><button class="action" id="calculate">Hesapla</button><div class="result" id="answer">—</div></div></section>
+<section class="panel"><div class="eyebrow">UYGULAMA KISAYOLLARI</div><h1>Hızlı erişim</h1><div class="tools">
+<button onclick="openApp('https://www.youtube.com')">▶ YouTube</button>
+<button onclick="openApp('https://www.google.com')">⌕ Google</button>
+<button onclick="openApp('https://maps.google.com')">⌖ Haritalar</button>
+<button onclick="openApp('https://mail.google.com')">✉ Gmail</button>
+<button onclick="openApp('https://calendar.google.com')">▦ Takvim</button>
+<button onclick="openApp('https://www.tiktok.com')">♪ TikTok</button>
+</div></section>
+<footer>EYМEN AI • İlk sürüm • Ses tanıma tarayıcı desteğine ve internet bağlantısına bağlıdır.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+function tick(){let d=new Date();$('clock').textContent=d.toLocaleTimeString('tr-TR',{hour12:false});$('date').textContent=d.toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+setInterval(tick,250);tick();
+function speak(t){$('state').textContent=t;if('speechSynthesis'in window){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang='tr-TR';u.rate=1;speechSynthesis.speak(u)}}
+function openApp(url){window.open(url,'_blank','noopener')}
+let swStart=0,swElapsed=0,swRun=false,swInt;
+$('stopwatch').onclick=()=>{if(!swRun){swStart=Date.now()-swElapsed;swRun=true;swInt=setInterval(()=>{$('sw').textContent=fmt(Date.now()-swStart)},50);speak('Kronometre başladı')}else{swElapsed=Date.now()-swStart;swRun=false;clearInterval(swInt);speak('Kronometre durduruldu')}};
+function fmt(ms){let t=Math.floor(ms/10),cs=t%100,s=Math.floor(t/100)%60,m=Math.floor(t/6000)%60,h=Math.floor(t/360000);return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':')+'.'+String(cs).padStart(2,'0')}
+function startTimer(sec){let end=Date.now()+sec*1000;speak(sec+' saniyelik sayaç başladı');let id=setInterval(()=>{let left=Math.max(0,Math.ceil((end-Date.now())/1000));$('heard').textContent='Kalan süre: '+left+' saniye';if(!left){clearInterval(id);speak('Sayaç tamamlandı.')}},250)}
+$('timer').onclick=()=>startTimer(60);
+$('calculate').onclick=()=>calc();
+function calc(){let s=$('expression').value.trim();if(!/^[0-9+\-*/().,%\s]+$/.test(s)){speak('Bu işlemi hesaplayamıyorum');return}try{let normalized=s.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)');let v=Function('"use strict";return ('+normalized+')')();if(!Number.isFinite(v))throw 0;$('answer').textContent=new Intl.NumberFormat('tr-TR',{maximumFractionDigits:6}).format(v);speak('Sonuç '+v)}catch(e){$('answer').textContent='Hatalı işlem';speak('İşlem hatalı')}}
+$('calc').onclick=()=>$('expression').focus();
+$('notes').onclick=()=>{let n=prompt('Eymen notuna ne yazsın?');if(n){localStorage.setItem('eymen_note',n);$('heard').textContent='Kaydedilen not: '+n;speak('Notunu bu cihazda kaydettim')}};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
+if(SR){rec=new SR();rec.lang='tr-TR';rec.interimResults=false;rec.maxAlternatives=1;rec.onstart=()=>{$('mic').classList.add('listening');$('state').textContent='Dinliyorum…'};rec.onend=()=>{$('mic').classList.remove('listening')};rec.onerror=e=>{$('state').textContent='Ses tanıma hatası: '+e.error};rec.onresult=e=>{let q=e.results[0][0].transcript.toLocaleLowerCase('tr-TR');$('heard').textContent='“'+q+'”';command(q)}}else{$('mic').disabled=true;$('state').textContent='Bu tarayıcı ses tanımayı desteklemiyor. Android Chrome ile deneyin.'}
+$('mic').onclick=()=>{if(rec){try{rec.start()}catch(e){}}};
+function command(q){
+if(q.includes('saat kaç')){speak('Saat '+new Date().toLocaleTimeString('tr-TR'));return}
+if(q.includes('kronometre')){$('stopwatch').click();return}
+if(q.includes('sayaç')||q.includes('geri sayım')){let m=q.match(/(\d+)\s*(dakika|dk|saniye|sn)/);let sec=m?Number(m[1])*(m[2].startsWith('dak')||m[2]==='dk'?60:1):60;startTimer(sec);return}
+if(q.includes('hesapla')||q.includes('kaç eder')){let expr=q.replace('hesapla','').replace('kaç eder','').replace(/artı/g,'+').replace(/eksi/g,'-').replace(/çarpı/g,'*').replace(/bölü/g,'/').replace(/virgül/g,'.');$('expression').value=expr;calc();return}
+if(q.includes('youtube')){openApp('https://www.youtube.com');speak('YouTube açılıyor');return}
+if(q.includes('google')){openApp('https://www.google.com');speak('Google açılıyor');return}
+if(q.includes('harita')){openApp('https://maps.google.com');speak('Haritalar açılıyor');return}
+if(q.includes('not al')){$('notes').click();return}
+if(q.includes('yardım')||q.includes('ne yapabilirsin')){speak('Saat, kronometre, sayaç, hesaplama, not ve web uygulama kısayollarında yardımcı olabilirim.');return}
+speak('Bu komutu henüz öğrenmedim. Bana başka bir komut verebilirsin.')
+}
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>
