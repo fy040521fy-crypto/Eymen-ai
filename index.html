@@ -46,7 +46,20 @@ footer{text-align:center;color:#587284;font-size:11px;padding:18px}
 <button class="tile" id="calc"><b>＋ Hesap makinesi</b><small>İşlem hesapla</small></button>
 <button class="tile" id="notes"><b>▤ Hızlı not</b><small>Notunu kaydet</small></button>
 </div></section>
-<section class="panel"><div class="eyebrow">HESAP MAKİNESİ</div><h1>Akıllı hesap</h1><input id="expression" inputmode="decimal" placeholder="Örn. 1250 * 0.18"><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><button class="action" id="calculate">Hesapla</button><div class="result" id="answer">—</div></div></section>
+<section class="panel" id="smartcalc">
+<div class="eyebrow">EYМEN INTELLIGENCE ENGINE</div><h1>Akıllı hesap merkezi</h1>
+<p>İşlemi normal konuşur gibi yaz. Yüzde, indirim, KDV, bölüşme, oran ve bilimsel işlemleri anlar.</p>
+<input id="expression" inputmode="decimal" autocomplete="off" placeholder="Örn. 1250 TL'nin yüzde 18'i kaç?">
+<div class="tools" style="margin-top:10px">
+<button data-q="1250'in yüzde 18'i kaç">Yüzde</button><button data-q="2500 TL'ye yüzde 15 indirim">İndirim</button><button data-q="1200 TL KDV hariç yüzde 20 KDV ekle">KDV ekle</button>
+<button data-q="3600 TL'yi 4 kişiye böl">Bölüş</button><button data-q="750'nin yüzde 8'i kaç">Oran</button><button data-q="karekök 144">Bilimsel</button>
+</div>
+<div style="display:flex;gap:8px;margin-top:12px;align-items:center"><button class="action" id="calculate">Hesapla</button><button class="action" id="clearCalc">Temizle</button></div>
+<div style="margin-top:14px;background:#06111b;border:1px solid #23465a;border-radius:14px;padding:14px">
+<div class="eyebrow">SONUÇ</div><div class="result" id="answer" style="font-size:30px;margin:5px 0">—</div><div id="calcDetail" style="color:var(--muted);font-size:13px">Hesaplamaya hazır.</div>
+</div>
+<div style="margin-top:14px"><div class="eyebrow">HESAPLAMA GEÇMİŞİ</div><div id="calcHistory" style="color:var(--muted);font-size:12px;margin-top:8px">Henüz işlem yok.</div></div>
+</section>
 <section class="panel"><div class="eyebrow">UYGULAMA KISAYOLLARI</div><h1>Hızlı erişim</h1><div class="tools">
 <button onclick="openApp('https://www.youtube.com')">▶ YouTube</button>
 <button onclick="openApp('https://www.google.com')">⌕ Google</button>
@@ -68,8 +81,53 @@ $('stopwatch').onclick=()=>{if(!swRun){swStart=Date.now()-swElapsed;swRun=true;s
 function fmt(ms){let t=Math.floor(ms/10),cs=t%100,s=Math.floor(t/100)%60,m=Math.floor(t/6000)%60,h=Math.floor(t/360000);return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':')+'.'+String(cs).padStart(2,'0')}
 function startTimer(sec){let end=Date.now()+sec*1000;speak(sec+' saniyelik sayaç başladı');let id=setInterval(()=>{let left=Math.max(0,Math.ceil((end-Date.now())/1000));$('heard').textContent='Kalan süre: '+left+' saniye';if(!left){clearInterval(id);speak('Sayaç tamamlandı.')}},250)}
 $('timer').onclick=()=>startTimer(60);
+const calcHistory=[];
+function fmtNum(n){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:8}).format(n)}
+function parseSmart(raw){
+ let s=raw.toLocaleLowerCase('tr-TR').trim().replaceAll('₺',' tl ').replaceAll(' yüzde ',' % ').replaceAll('yüzde ',' % ');
+ s=s.replace(/(\d),(\d)/g,'$1.$2');
+ // Natural-language percentage / commercial calculations
+ let m;
+ m=s.match(/([\d.]+)\s*(?:tl|lira)?\s*(?:'in|'ın|'un|'ün)?\s*%\s*([\d.]+)/);
+ if(m && /(kaç|nedir|\?|hesapla|hesap)/.test(s)) return {v:Number(m[1])*Number(m[2])/100,d:`${m[1]} sayısının %${m[2]}’si`};
+ m=s.match(/([\d.]+)\s*(?:tl|lira)?\s*(?:'ye|'ya|'a|'e)?\s*%\s*([\d.]+)\s*indirim/);
+ if(m) return {v:Number(m[1])*(1-Number(m[2])/100),d:`%${m[2]} indirim sonrası tutar`};
+ m=s.match(/([\d.]+)\s*(?:tl|lira)?\s*(?:'ye|'ya|'a|'e)?\s*%\s*([\d.]+)\s*(?:zam|artış)/);
+ if(m) return {v:Number(m[1])*(1+Number(m[2])/100),d:`%${m[2]} artış sonrası tutar`};
+ m=s.match(/([\d.]+)\s*(?:tl|lira)?\s*(?:'yi|'ı|'u|'ü)?\s*(?:([\d.]+)\s*kişiye|([\d.]+)\s*kişiye)?\s*böl/);
+ if(m){let people=Number(m[2]||m[3]||1);return {v:Number(m[1])/people,d:`Kişi başı tutar (${people} kişi)`}}
+ m=s.match(/([\d.]+)\s*(?:tl|lira)?\s*k dv?\s*(?:hariç|ekle).*(?:%|oranı)?\s*([\d.]+)?/);
+ if(m){let rate=Number(m[2]||20);return {v:Number(m[1])*(1+rate/100),d:`%${rate} KDV eklenmiş toplam`}}
+ m=s.match(/karekök\s*(?:al\s*)?([\d.]+)/);
+ if(m)return {v:Math.sqrt(Number(m[1])),d:`${m[1]} sayısının karekökü`};
+ // Translate common Turkish math words into operators.
+ s=s.replace(/kaç eder|kaç|nedir|hesapla|hesap|sonuç|lütfen|tl|lira|toplamını|toplamı/g,' ')
+ .replace(/artı/g,'+').replace(/eksi/g,'-').replace(/çarpı|çarp/g,'*').replace(/bölü/g,'/')
+ .replace(/kere/g,'*').replace(/üs(?:sü)?/g,'^').replace(/pi sayısı/g,'pi')
+ .replace(/karekök\s*(\d+(?:\.\d+)?)/g,'sqrt($1)')
+ .replace(/sinüs/g,'sin').replace(/kosinüs/g,'cos').replace(/tanjant/g,'tan')
+ .replace(/logaritma/g,'log').replace(/doğal logaritma/g,'ln')
+ .replace(/,/g,'.').trim();
+ if(!s) throw Error('Bir işlem yazmalısın.');
+ // Small safe arithmetic parser (no eval / Function).
+ const tokens=s.match(/(?:\d+(?:\.\d*)?|\.\d+)|(?:sqrt|sin|cos|tan|log|ln|pi|e)|[()+\-*/^%]/g);
+ if(!tokens || tokens.join('')!==s.replace(/\s/g,'')) throw Error('İşlemi anlayamadım. Örn: 1250’nin yüzde 18’i kaç?');
+ let i=0;
+ function expr(){let x=term();while(tokens[i]==='+'||tokens[i]==='-'){let op=tokens[i++],y=term();x=op==='+'?x+y:x-y}return x}
+ function term(){let x=power();while(['*','/','%'].includes(tokens[i])){let op=tokens[i++],y=power();if(op==='*')x*=y;else if(op==='/'){if(y===0)throw Error('Sıfıra bölme yapılamaz.');x/=y}else x%=y}return x}
+ function power(){let x=unary();if(tokens[i]==='^'){i++;x=Math.pow(x,power())}return x}
+ function unary(){if(tokens[i]==='-'){i++;return -unary()}if(tokens[i]==='+'){i++;return unary()}return atom()}
+ function atom(){let t=tokens[i++];if(t==='('){let x=expr();if(tokens[i++]!==')')throw Error('Parantezleri kontrol et.');return x}
+ if(t==='pi')return Math.PI;if(t==='e')return Math.E;
+ if(['sqrt','sin','cos','tan','log','ln'].includes(t)){let x;if(tokens[i]==='('){i++;x=expr();if(tokens[i++]!==')')throw Error('Parantez hatalı.')}else x=unary();if(t==='sqrt')return Math.sqrt(x);if(t==='sin')return Math.sin(x*Math.PI/180);if(t==='cos')return Math.cos(x*Math.PI/180);if(t==='tan')return Math.tan(x*Math.PI/180);if(t==='log')return Math.log10(x);return Math.log(x)}
+ let n=Number(t);if(!Number.isFinite(n))throw Error('Sayı bekleniyordu.');return n}
+ let v=expr();if(i!==tokens.length)throw Error('İşlemde fazladan ifade var.');if(!Number.isFinite(v))throw Error('Bu işlem için geçerli sonuç bulunamadı.');
+ return {v,d:'Matematiksel işlem sonucu'};
+}
+function calc(){try{let raw=$('expression').value;let r=parseSmart(raw);$('answer').textContent=fmtNum(r.v);$('calcDetail').textContent=r.d;speak('Sonuç '+fmtNum(r.v));calcHistory.unshift(`${raw} = ${fmtNum(r.v)}`);$('calcHistory').innerHTML=calcHistory.slice(0,5).map(x=>'<div style="padding:7px 0;border-bottom:1px solid #18384b">'+x.replaceAll('<','&lt;')+'</div>').join('')}catch(e){$('answer').textContent='—';$('calcDetail').textContent=e.message;speak(e.message)}}
 $('calculate').onclick=()=>calc();
-function calc(){let s=$('expression').value.trim();if(!/^[0-9+\-*/().,%\s]+$/.test(s)){speak('Bu işlemi hesaplayamıyorum');return}try{let normalized=s.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)');let v=Function('"use strict";return ('+normalized+')')();if(!Number.isFinite(v))throw 0;$('answer').textContent=new Intl.NumberFormat('tr-TR',{maximumFractionDigits:6}).format(v);speak('Sonuç '+v)}catch(e){$('answer').textContent='Hatalı işlem';speak('İşlem hatalı')}}
+$('clearCalc').onclick=()=>{$('expression').value='';$('answer').textContent='—';$('calcDetail').textContent='Yeni işleme hazır.'};
+document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{$('expression').value=b.dataset.q;calc()});
 $('calc').onclick=()=>$('expression').focus();
 $('notes').onclick=()=>{let n=prompt('Eymen notuna ne yazsın?');if(n){localStorage.setItem('eymen_note',n);$('heard').textContent='Kaydedilen not: '+n;speak('Notunu bu cihazda kaydettim')}};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec;
@@ -79,7 +137,7 @@ function command(q){
 if(q.includes('saat kaç')){speak('Saat '+new Date().toLocaleTimeString('tr-TR'));return}
 if(q.includes('kronometre')){$('stopwatch').click();return}
 if(q.includes('sayaç')||q.includes('geri sayım')){let m=q.match(/(\d+)\s*(dakika|dk|saniye|sn)/);let sec=m?Number(m[1])*(m[2].startsWith('dak')||m[2]==='dk'?60:1):60;startTimer(sec);return}
-if(q.includes('hesapla')||q.includes('kaç eder')){let expr=q.replace('hesapla','').replace('kaç eder','').replace(/artı/g,'+').replace(/eksi/g,'-').replace(/çarpı/g,'*').replace(/bölü/g,'/').replace(/virgül/g,'.');$('expression').value=expr;calc();return}
+if(q.includes('hesapla')||q.includes('kaç eder')||q.includes('yüzde')||q.includes('indirim')||q.includes('karekök')||q.includes('böl')){$('expression').value=q.replace(/virgül/g,'.');calc();return}
 if(q.includes('youtube')){openApp('https://www.youtube.com');speak('YouTube açılıyor');return}
 if(q.includes('google')){openApp('https://www.google.com');speak('Google açılıyor');return}
 if(q.includes('harita')){openApp('https://maps.google.com');speak('Haritalar açılıyor');return}
