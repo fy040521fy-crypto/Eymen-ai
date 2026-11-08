@@ -1,4 +1,3 @@
-
 name: EYMEN APK
 
 on:
@@ -13,7 +12,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Kodlari al
         uses: actions/checkout@v4
@@ -26,6 +24,8 @@ jobs:
 
       - name: Android SDK kur
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: SDK paketlerini yukle
         run: |
@@ -43,30 +43,24 @@ jobs:
         id: project
         run: |
           ZIP=$(find . -maxdepth 2 -type f -iname '*.zip' -print -quit)
-
           if [ -z "$ZIP" ]; then
             echo "Proje ZIP dosyasi bulunamadi!"
             exit 1
           fi
-
           mkdir -p launcher
           unzip -q "$ZIP" -d launcher
-
           PROJECT_FILE=$(find launcher -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)
-
           if [ -z "$PROJECT_FILE" ]; then
             echo "Gradle proje dosyasi bulunamadi!"
             exit 1
           fi
-
           PROJECT_DIR=$(dirname "$PROJECT_FILE")
           echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
 
       - name: APK olustur
         env:
           PROJECT_DIR: ${{ steps.project.outputs.project_dir }}
-        run: |
-          gradle -p "$PROJECT_DIR" assembleDebug
+        run: gradle -p "$PROJECT_DIR" assembleDebug
 
       - name: APK dosyasini yayinla
         uses: actions/upload-artifact@v4
