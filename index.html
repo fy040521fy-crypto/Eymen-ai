@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="tr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#08090c"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="EYMEN"><link rel="manifest" href="./manifest.webmanifest"><title>Eymen</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050608"><meta name="mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="EYMEN"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon-192.png"><title>Eymen</title>
 <style>
 :root{--bg:#070b16;--panel:#111a2b;--panel2:#0c1421;--line:#354b69;--teal:#48f0dc;--gold:#ffd166;--violet:#b69cff;--text:#f4f7ff;--muted:#a4b2c8}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
@@ -212,6 +212,50 @@ body{background:radial-gradient(ellipse at 50% 18%,#261014 0,transparent 42%),li
 
 #weatherDetail,#prayerClock{line-height:1.2}
 #topStopwatch,#topCountdown{font-variant-numeric:tabular-nums}
+
+
+/* EYMEN — Note 9 ana ekran görünümü */
+html, body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+  background: #050608 !important;
+}
+body {
+  min-height: 100dvh;
+  padding: 0 !important;
+}
+.shell {
+  width: 100%;
+  max-width: none !important;
+  min-height: 100dvh;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+@supports (min-height: 100svh) {
+  .shell { min-height: 100svh; }
+}
+.realistic-hero {
+  width: 100%;
+}
+@media (max-width: 390px) {
+  .realistic-hero { width: 100%; }
+}
+
+
+/* Standalone launcher mode */
+:root { color-scheme: dark; }
+body { padding-top: env(safe-area-inset-top, 0) !important; padding-bottom: env(safe-area-inset-bottom, 0) !important; }
+@media (display-mode: standalone) {
+  html, body { min-height: 100%; overscroll-behavior: none; }
+  body { -webkit-user-select: none; user-select: none; }
+  button, input, textarea { -webkit-tap-highlight-color: transparent; }
+}
 
 </style></head>
 <body><div class="shell">

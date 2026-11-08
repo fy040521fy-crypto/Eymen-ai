@@ -1,19 +1,19 @@
 {
   "id": "./",
-  "name": "EYMEN – Tam Ekran Kontrol Merkezi",
+  "name": "EYMEN Ana Ekran",
   "short_name": "EYMEN",
-  "description": "EYMEN kişisel kontrol merkezi",
-  "lang": "tr-TR",
+  "description": "Note 9 için EYMEN kişisel ana ekranı",
+  "lang": "tr",
   "start_url": "./index.html",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "display_override": [
-    "fullscreen",
-    "standalone"
+    "standalone",
+    "fullscreen"
   ],
   "orientation": "portrait",
-  "background_color": "#08090c",
-  "theme_color": "#08090c",
+  "background_color": "#050608",
+  "theme_color": "#050608",
   "icons": [
     {
       "src": "./icon-192.png",
