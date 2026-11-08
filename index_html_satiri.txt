@@ -1,0 +1,2 @@
+index.html içindeki <script src="./voice.js?v=2"></script> satırını <script src="./voice.js?v=3"></script> olarak değiştir.
+Ayrıca service worker kayıt satırındaki ./sw.js?v=2 kısmını ./sw.js?v=4 yap.
