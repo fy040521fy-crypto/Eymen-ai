@@ -1,3 +1,4 @@
+
 name: EYMEN APK
 
 on:
@@ -6,12 +7,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kodları al
+      - name: Kodlari al
         uses: actions/checkout@v4
 
       - name: Java 17 kur
@@ -20,29 +24,53 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      
       - name: Android SDK kur
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
-          accept-android-sdk-licenses: true
+
+      - name: SDK paketlerini yukle
+        run: |
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Gradle kur
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: Projeyi hazırla
+      - name: Projeyi hazirla
+        id: project
         run: |
-          mkdir launcher
-          ZIP=$(find . -maxdepth 1 -iname '*.zip' | head -n 1)
+          ZIP=$(find . -maxdepth 2 -type f -iname '*.zip' -print -quit)
+
+          if [ -z "$ZIP" ]; then
+            echo "Proje ZIP dosyasi bulunamadi!"
+            exit 1
+          fi
+
+          mkdir -p launcher
           unzip -q "$ZIP" -d launcher
 
-      - name: APK oluştur
-        run: gradle -p launcher assembleDebug
+          PROJECT_FILE=$(find launcher -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)
 
-      - name: APK dosyasını yayınla
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "Gradle proje dosyasi bulunamadi!"
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$PROJECT_FILE")
+          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: APK olustur
+        env:
+          PROJECT_DIR: ${{ steps.project.outputs.project_dir }}
+        run: |
+          gradle -p "$PROJECT_DIR" assembleDebug
+
+      - name: APK dosyasini yayinla
         uses: actions/upload-artifact@v4
         with:
           name: EYMEN-APK
-          path: launcher/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.project.outputs.project_dir }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
