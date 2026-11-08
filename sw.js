@@ -1,5 +1,5 @@
-const CACHE_NAME = 'eymen-note9-v3';
-const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE_NAME = 'eymen-note9-v4';
+const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './voice.js?v=3'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
