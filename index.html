@@ -561,6 +561,7 @@ function say(text){
   if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';speechSynthesis.speak(u);}
 }
 function runVoiceCommand(raw){
+  if(window.EYMEN_VOICE){window.EYMEN_VOICE.command(raw);return;}
   const q=raw.toLocaleLowerCase('tr-TR');
   if(q.includes('saat')){
     say('Saat '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}));return;
