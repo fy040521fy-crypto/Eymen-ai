@@ -1,0 +1,37 @@
+
+name: EYMEN APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Prepare project
+        run: |
+          mkdir launcher
+          ZIP=$(find . -maxdepth 1 -name '*.zip' | head -n 1)
+          unzip -q "$ZIP" -d launcher
+
+      - name: Build EYMEN
+        run: gradle -p launcher assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EYMEN-APK
+          path: launcher/app/build/outputs/apk/debug/app-debug.apk
