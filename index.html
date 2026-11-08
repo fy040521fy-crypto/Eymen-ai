@@ -612,7 +612,7 @@ toast('EYMEN hazır · Kontroller etkin');
 <script>
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('EYMEN çevrimdışı kayıt:', err));
+    navigator.serviceWorker.register('./sw.js?v=2', {updateViaCache:'none'}).then(reg => reg.update()).catch(err => console.warn('EYMEN çevrimdışı kayıt:', err));
   });
 }
 </script>
